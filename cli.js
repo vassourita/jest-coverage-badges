@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const { get } = require('https')
 const { readFile, writeFile } = require('fs')
 
