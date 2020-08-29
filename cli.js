@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /* eslint-disable semi */
-const mkdirp = require('mkdirp');
-const { get } = require('https');
-const { readFile, writeFile } = require('fs');
+const mkdirp = require("mkdirp");
+const { get } = require("https");
+const { readFile, writeFile } = require("fs");
 
 /**
  * Will lookup the argument in the cli arguments list and will return a
@@ -18,7 +18,7 @@ const findArgument = (argName, defaultOutput) => {
     return defaultOutput;
   }
 
-  const index = process.argv.findIndex(a => a.match(argName))
+  const index = process.argv.findIndex((a) => a.match(argName));
   if (index < 0) {
     return defaultOutput;
   }
@@ -28,55 +28,60 @@ const findArgument = (argName, defaultOutput) => {
   } catch (e) {
     return defaultOutput;
   }
-}
-
-const outputPath = findArgument('output', './coverage');
-const inputPath = findArgument('input', './coverage/coverage-summary.json');
-
-const getColour = (coverage) => {
-  if (coverage < 80) {
-    return 'red';
-  }
-
-  if (coverage < 90) {
-    return 'yellow';
-  }
-
-  return 'brightgreen';
 };
 
-const reportKeys = ['lines', 'statements', 'functions', 'branches'];
+const outputPath = findArgument("output", "./coverage");
+const inputPath = findArgument("input", "./coverage/coverage-summary.json");
+
+const getColour = (coverage) => {
+  if (coverage < 75) {
+    return "red";
+  }
+
+  if (coverage < 85) {
+    return "yellow";
+  }
+
+  return "brightgreen";
+};
+
+const reportKeys = ["lines", "statements", "functions", "branches"];
 
 const getBadge = (report, key) => {
   if (!(report && report.total && report.total[key])) {
-    throw new Error('malformed coverage report');
+    throw new Error("malformed coverage report");
   }
 
-  const coverage = (!report.total[key] || typeof report.total[key].pct !== 'number') ? 0 : report.total[key].pct;
+  const coverage =
+    !report.total[key] || typeof report.total[key].pct !== "number"
+      ? 0
+      : report.total[key].pct;
   const colour = getColour(coverage);
 
-  return `https://img.shields.io/badge/Coverage${encodeURI(':')}${key}-${coverage}${encodeURI('%')}-${colour}.svg`;
-}
+  return `https://img.shields.io/badge/Coverage${encodeURI(
+    ":"
+  )}${key}-${coverage}${encodeURI("%")}-${colour}.svg?style=flat-square`;
+};
 
 const download = (url, cb) => {
   get(url, (res) => {
-    let file = '';
-    res.on('data', (chunk) => {
+    let file = "";
+    res.on("data", (chunk) => {
       file += chunk;
     });
-    res.on('end', () => cb(null, file));
-  }).on('error', err => cb(err));
-}
+    res.on("end", () => cb(null, file));
+  }).on("error", (err) => cb(err));
+};
 
 const writeBadgeInFolder = (key, res) => {
-  writeFile(`${outputPath}/badge-${key}.svg`, res, 'utf8', (writeError) => {
+  writeFile(`${outputPath}/badge-${key}.svg`, res, "utf8", (writeError) => {
     if (writeError) {
       throw writeError;
     }
   });
-}
+};
 
-const getBadgeByKey = report => (key) => {
+const getBadgeByKey = (report) => (key) => {
   const url = getBadge(report, key);
 
   download(url, (err, res) => {
@@ -89,11 +94,11 @@ const getBadgeByKey = report => (key) => {
       } else {
         writeBadgeInFolder(key, res);
       }
-    })
-  })
-}
+    });
+  });
+};
 
-readFile(`${inputPath}`, 'utf8', (err, res) => {
+readFile(`${inputPath}`, "utf8", (err, res) => {
   if (err) {
     throw err;
   }
